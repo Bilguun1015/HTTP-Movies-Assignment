@@ -3,7 +3,9 @@ import axios from 'axios';
 
 
 
-const UpdateForm = props => {
+const UpdateForm = (props) => {
+  const [oldMovies, setOldMovies ] = useState();
+console.log('oldmovies',oldMovies)
     const id = props.match.params.id;
     const initialMovie = {
         title: '',
@@ -14,30 +16,40 @@ const UpdateForm = props => {
     };
     console.log('hehe',props)
     
-  const [movies, setMovies] = useState(initialMovie);
+  const [movie, setMovie] = useState(initialMovie);
   const changeHandler = e => {
     e.persist();
     let value = e.target.value;
     if(e.target.name === 'stars'){
         value = value.split(', ')
     }
-    setMovies({
-        ...movies,
+    setMovie({
+        ...movie,
         [e.target.name] : value
     })
   }     
   
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/api/movies`)
+      .then(res => {
+        const itemInArr = res.data.find(item => item.id === id)
+        if(itemInArr) setMovie(itemInArr)
+      })
+      .catch(err => console.log(err.response));
+  },[])
 
   const handleSubmit = e => {
     e.preventDefault();
+    console.log('movie in handlesubmit',movie)
     axios
-      .put(`http://localhost:5000/api/movies/${id}`, movies)
+      .put(`http://localhost:5000/api/movies/${id}`, movie)
       .then(res => {
         console.log(res);
-        setMovies(initialMovie);
-        props.history.push('/');
+        setMovie(initialMovie);
       })
       .catch(err => console.log(err.response));
+      props.history.push('/');
   };
 
   return (
@@ -49,7 +61,7 @@ const UpdateForm = props => {
           name="title"
           onChange={changeHandler}
           placeholder="title"
-          value={movies.title}
+          value={movie.title}
         />
 
         <input
@@ -57,7 +69,7 @@ const UpdateForm = props => {
           name="director"
           onChange={changeHandler}
           placeholder="director name"
-          value={movies.director}
+          value={movie.director}
         />
 
         <input
@@ -65,7 +77,7 @@ const UpdateForm = props => {
           name="metascore"
           onChange={changeHandler}
           placeholder="metascore"
-          value={movies.metascore}
+          value={movie.metascore}
         />
 
         <input
@@ -73,7 +85,7 @@ const UpdateForm = props => {
           name="stars"
           onChange={changeHandler}
           placeholder="stars"
-          value={movies.stars}
+          value={movie.stars}
         />
 
         <button className="md-button form-button">Update</button>
